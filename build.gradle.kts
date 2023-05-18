@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "tel.schich"
-version = "1.0.0"
+version = "1.0.1-SNAPSHOT"
 description = "Provides a S3 PostObject request signer"
 
 repositories {
@@ -22,10 +22,16 @@ tasks.test {
     useJUnitPlatform()
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 publishing {
     publications {
         create<MavenPublication>("central") {
             pom {
+                from(components["java"])
                 name.set(rootProject.name)
                 description.set(rootProject.description)
                 url.set("https://github.com/pschichtel/aws-s3-post-signer")
@@ -41,11 +47,6 @@ publishing {
                         name.set("Phillip Schichtel")
                         email.set("phillip@schich.tel")
                         roles.add("Library Author")
-                    }
-                    developer {
-                        id.set("trinopoty")
-                        name.set("Trinopoty Biswas")
-                        roles.add("Original Author")
                     }
                 }
                 scm {
