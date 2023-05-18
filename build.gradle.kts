@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "tel.schich"
-version = "1.0.1-SNAPSHOT"
+version = "1.0.1"
 description = "Provides a S3 PostObject request signer"
 
 repositories {
