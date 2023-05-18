@@ -1,5 +1,5 @@
-aws-s3-post-signer
-==================
+aws-s3-post-object-presigner
+============================
 
 This library provides classes to create presigned POST Object requests for AWS S3 (or compatible S3 implementations).
 

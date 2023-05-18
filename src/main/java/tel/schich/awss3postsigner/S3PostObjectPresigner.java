@@ -1,11 +1,14 @@
 package tel.schich.awss3postsigner;
 
 import com.google.gson.Gson;
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
 import javax.crypto.Mac;
@@ -18,18 +21,20 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Supplier;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.ZoneOffset.UTC;
 import static java.time.ZonedDateTime.now;
 import static java.util.Locale.ENGLISH;
 
-public final class S3PostSigner {
+public final class S3PostObjectPresigner {
+
     public static final class Builder {
         private S3Configuration serviceConfiguration = S3Configuration.builder().build();
-        private AwsCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
-
+        private AwsCredentialsProvider credentialsProvider;
         private URI endpointOverride = null;
+        private Region region = null;
 
         public Builder serviceConfiguration(S3Configuration serviceConfiguration) {
             Objects.requireNonNull(serviceConfiguration);
@@ -38,7 +43,6 @@ public final class S3PostSigner {
         }
 
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-            Objects.requireNonNull(credentialsProvider);
             this.credentialsProvider = credentialsProvider;
             return this;
         }
@@ -48,9 +52,13 @@ public final class S3PostSigner {
             return this;
         }
 
+        public Builder region(Region region) {
+            this.region = region;
+            return this;
+        }
 
-        public S3PostSigner build() {
-            return new S3PostSigner(credentialsProvider, serviceConfiguration, endpointOverride);
+        public S3PostObjectPresigner build() {
+            return new S3PostObjectPresigner(this);
         }
     }
 
@@ -72,21 +80,39 @@ public final class S3PostSigner {
             .withZone(UTC);
 
 
+    private final Supplier<ProfileFile> profileFile;
+    private final String profileName;
     private final AwsCredentialsProvider credentialsProvider;
     private final S3Configuration serviceConfiguration;
-    private final URI endpointOverride;
+    private final URI endpoint;
 
-    S3PostSigner(AwsCredentialsProvider credentialsProvider, S3Configuration serviceConfiguration, URI endpointOverride) {
-        this.credentialsProvider = credentialsProvider;
-        this.serviceConfiguration = serviceConfiguration;
-        this.endpointOverride = endpointOverride;
+    private final Region region;
+
+    S3PostObjectPresigner(Builder builder) {
+        this.profileFile = ProfileFile::defaultProfileFile;
+        this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+        this.serviceConfiguration = builder.serviceConfiguration;
+        this.region = builder.region != null ? builder.region : DefaultAwsRegionProviderChain.builder()
+                .profileFile(profileFile)
+                .profileName(profileName)
+                .build()
+                .getRegion();
+        this.credentialsProvider = builder.credentialsProvider != null ? builder.credentialsProvider : DefaultCredentialsProvider.builder()
+                .profileFile(profileFile)
+                .profileName(profileName)
+                .build();
+        this.endpoint = builder.endpointOverride != null ? builder.endpointOverride : new DefaultServiceEndpointBuilder("s3", "https")
+                .withRegion(region)
+                .withProfileFile(profileFile)
+                .withProfileName(profileName)
+                .getServiceEndpoint();
     }
 
     public S3PresignedPostObjectRequest presignPost(S3PostObjectRequest request) {
         final AwsCredentials credentials = credentialsProvider.resolveCredentials();
 
         final Instant timestamp = Instant.now();
-        final String credentialsField = buildCredentialField(credentials, request.getRegion());
+        final String credentialsField = buildCredentialField(credentials, region);
 
         final List<Condition> augmentedConditions = new ArrayList<>(request.getConditions());
         augmentedConditions.add(Conditions.algorithmEquals("AWS4-HMAC-SHA256"));
@@ -108,37 +134,30 @@ public final class S3PostSigner {
         fields.put("x-amz-signature", hexDump(signMac(generateSigningKey(
                         credentials.secretAccessKey(),
                         timestamp,
-                        request.getRegion(),
+                        region,
                         "s3"),
                 encodedPolicy.getBytes(UTF_8))));
         fields.put("Policy", encodedPolicy);
 
-        URI baseEndpoint = endpointOverride != null ? endpointOverride : defaultEndpoint(request.getRegion());
         URI endpoint;
         if (serviceConfiguration.pathStyleAccessEnabled()) {
-            endpoint = baseEndpoint.resolve(URLEncoder.encode(request.getBucket(), UTF_8));
+            endpoint = this.endpoint.resolve(URLEncoder.encode(request.getBucket(), UTF_8));
         } else {
             try {
-                String hostWithBucket = request.getBucket() + "." + baseEndpoint.getHost();
-                endpoint = new URI(baseEndpoint.getScheme(),
-                        baseEndpoint.getUserInfo(),
+                String hostWithBucket = request.getBucket() + "." + this.endpoint.getHost();
+                endpoint = new URI(this.endpoint.getScheme(),
+                        this.endpoint.getUserInfo(),
                         hostWithBucket,
-                        baseEndpoint.getPort(),
-                        baseEndpoint.getPath(),
-                        baseEndpoint.getQuery(),
-                        baseEndpoint.getFragment());
+                        this.endpoint.getPort(),
+                        this.endpoint.getPath(),
+                        this.endpoint.getQuery(),
+                        this.endpoint.getFragment());
             } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
         }
 
         return new S3PresignedPostObjectRequest(endpoint, fields);
-    }
-
-    private static URI defaultEndpoint(Region region) {
-        return (new DefaultServiceEndpointBuilder("s3", "https"))
-                .withRegion(region)
-                .getServiceEndpoint();
     }
 
     private static byte[] signMac(byte[] key, byte[] data) {

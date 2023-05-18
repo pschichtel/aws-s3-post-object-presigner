@@ -1,4 +1,4 @@
-rootProject.name = "aws-s3-post-signer"
+rootProject.name = "aws-s3-post-object-presigner"
 
 pluginManagement {
 
