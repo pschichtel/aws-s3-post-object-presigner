@@ -27,7 +27,7 @@ publishing {
         create<MavenPublication>("central") {
             pom {
                 name.set(rootProject.name)
-                description.set(description)
+                description.set(rootProject.description)
                 url.set("https://github.com/pschichtel/aws-s3-post-signer")
                 licenses {
                     license {
@@ -42,7 +42,7 @@ publishing {
                         email.set("phillip@schich.tel")
                         roles.add("Library Author")
                     }
-                    this.developer {
+                    developer {
                         id.set("trinopoty")
                         name.set("Trinopoty Biswas")
                         roles.add("Original Author")
