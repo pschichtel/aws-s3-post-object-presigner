@@ -1,4 +1,4 @@
-package tel.schich.awss3postsigner;
+package tel.schich.awss3postobjectpresigner;
 
 import java.net.URI;
 import java.util.Collections;

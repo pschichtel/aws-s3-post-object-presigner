@@ -1,4 +1,4 @@
-package tel.schich.awss3postsigner;
+package tel.schich.awss3postobjectpresigner;
 
 import com.google.gson.annotations.Expose;
 

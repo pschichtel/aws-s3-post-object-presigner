@@ -1,4 +1,4 @@
-package tel.schich.awss3postsigner;
+package tel.schich.awss3postobjectpresigner;
 
 import java.time.Duration;
 import java.time.Instant;

@@ -1,4 +1,4 @@
-package tel.schich.awss3postsigner;
+package tel.schich.awss3postobjectpresigner;
 
 public class ContentLengthRangeCondition extends Condition {
     private final int minimumBytes;
