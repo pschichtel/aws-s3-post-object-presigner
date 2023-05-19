@@ -1,6 +1,6 @@
 package tel.schich.awss3postobjectpresigner;
 
-public class StartsWithCondition extends Condition {
+public class StartsWithCondition implements Condition {
     private final String field;
     private final String prefix;
 
@@ -9,8 +9,11 @@ public class StartsWithCondition extends Condition {
         this.prefix = prefix;
     }
 
-    @Override
-    Object[] encode() {
-        return new Object[] { "starts-with", "$" + field, prefix};
+    public String field() {
+        return field;
+    }
+
+    public String prefix() {
+        return prefix;
     }
 }

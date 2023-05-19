@@ -3,12 +3,12 @@ package tel.schich.awss3postobjectpresigner;
 import com.google.gson.annotations.Expose;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+import static java.util.Collections.singletonMap;
 
-public final class Policy {
+final class Policy {
 
     @Expose
     public final String expiration;
@@ -26,7 +26,18 @@ public final class Policy {
         ArrayList<Object> encodedConditions = new ArrayList<>();
 
         for (Condition condition : conditions) {
-            encodedConditions.add(condition.encode());
+            if (condition instanceof EqualsCondition) {
+                EqualsCondition cond = (EqualsCondition) condition;
+                encodedConditions.add(singletonMap(cond.field(), cond.value()));
+            } else if (condition instanceof StartsWithCondition) {
+                StartsWithCondition cond = (StartsWithCondition) condition;
+                encodedConditions.add(new Object[] { "starts-with", "$" + cond.field(), cond.prefix()});
+            } else if (condition instanceof ContentLengthRangeCondition) {
+                ContentLengthRangeCondition cond = (ContentLengthRangeCondition) condition;
+                encodedConditions.add(new Object[] { "content-length-range", cond.minimumBytes(), cond.maximumBytes() });
+            } else {
+                throw new IllegalArgumentException("Unknown Condition type: " + condition.getClass().getName());
+            }
         }
 
         return new Policy(expirationString, encodedConditions);

@@ -1,9 +1,6 @@
 package tel.schich.awss3postobjectpresigner;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class EqualsCondition extends Condition {
+public class EqualsCondition implements Condition {
     private final String field;
     private final String value;
 
@@ -18,12 +15,5 @@ public class EqualsCondition extends Condition {
 
     public String value() {
         return value;
-    }
-
-    @Override
-    Object encode() {
-        Map<String, String> data = new HashMap<>(1);
-        data.put(field, value);
-        return data;
     }
 }

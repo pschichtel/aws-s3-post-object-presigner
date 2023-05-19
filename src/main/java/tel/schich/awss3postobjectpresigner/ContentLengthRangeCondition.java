@@ -1,6 +1,6 @@
 package tel.schich.awss3postobjectpresigner;
 
-public class ContentLengthRangeCondition extends Condition {
+public class ContentLengthRangeCondition implements Condition {
     private final int minimumBytes;
     private final int maximumBytes;
 
@@ -9,8 +9,11 @@ public class ContentLengthRangeCondition extends Condition {
         this.maximumBytes = maximumBytes;
     }
 
-    @Override
-    Object[] encode() {
-        return new Object[] { "content-length-range", minimumBytes, maximumBytes };
+    public int minimumBytes() {
+        return minimumBytes;
+    }
+
+    public int maximumBytes() {
+        return maximumBytes;
     }
 }
