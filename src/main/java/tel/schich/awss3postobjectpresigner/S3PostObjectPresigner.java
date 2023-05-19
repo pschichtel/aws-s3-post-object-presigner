@@ -114,19 +114,19 @@ public final class S3PostObjectPresigner {
         final Instant timestamp = Instant.now();
         final String credentialsField = buildCredentialField(credentials, region);
 
-        final List<Condition> augmentedConditions = new ArrayList<>(request.getConditions());
+        final List<Condition> augmentedConditions = new ArrayList<>(request.conditions());
         augmentedConditions.add(Conditions.algorithmEquals("AWS4-HMAC-SHA256"));
         augmentedConditions.add(Conditions.credentialEquals(credentialsField));
         augmentedConditions.add(Conditions.dateEquals(AMZ_DATE_FORMATTER.format(timestamp)));
-        augmentedConditions.add(Conditions.bucketEquals(request.getBucket()));
-        final Policy policy = Policy.create(request.getExpiration(), augmentedConditions);
+        augmentedConditions.add(Conditions.bucketEquals(request.bucket()));
+        final Policy policy = Policy.create(request.expiration(), augmentedConditions);
 
         final HashMap<String, String> fields = new HashMap<>();
 
         for (Condition condition : augmentedConditions) {
             if (condition instanceof EqualsCondition) {
                 final EqualsCondition equalsCondition = (EqualsCondition) condition;
-                fields.put(equalsCondition.getField(), equalsCondition.getValue());
+                fields.put(equalsCondition.field(), equalsCondition.value());
             }
         }
 
@@ -141,10 +141,10 @@ public final class S3PostObjectPresigner {
 
         URI endpoint;
         if (serviceConfiguration.pathStyleAccessEnabled()) {
-            endpoint = this.endpoint.resolve(URLEncoder.encode(request.getBucket(), UTF_8));
+            endpoint = this.endpoint.resolve(URLEncoder.encode(request.bucket(), UTF_8));
         } else {
             try {
-                String hostWithBucket = request.getBucket() + "." + this.endpoint.getHost();
+                String hostWithBucket = request.bucket() + "." + this.endpoint.getHost();
                 endpoint = new URI(this.endpoint.getScheme(),
                         this.endpoint.getUserInfo(),
                         hostWithBucket,

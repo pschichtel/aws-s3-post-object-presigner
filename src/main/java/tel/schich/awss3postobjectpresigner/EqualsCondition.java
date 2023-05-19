@@ -12,11 +12,11 @@ public class EqualsCondition extends Condition {
         this.value = value;
     }
 
-    public String getField() {
+    public String field() {
         return field;
     }
 
-    public String getValue() {
+    public String value() {
         return value;
     }
 

@@ -36,9 +36,7 @@ public final class S3PostObjectRequest {
         }
 
         public S3PostObjectRequest build() {
-            Objects.requireNonNull(bucket, "bucket is required!");
-            Objects.requireNonNull(expiration, "expiration is required!");
-            return new S3PostObjectRequest(conditions, expiration, bucket);
+            return new S3PostObjectRequest(this);
         }
     }
 
@@ -46,25 +44,27 @@ public final class S3PostObjectRequest {
     private final Instant expiration;
     private final String bucket;
 
-    private S3PostObjectRequest(List<Condition> conditions, Instant expiration, String bucket) {
-        this.conditions = Collections.unmodifiableList(conditions);
-        this.expiration = expiration;
-        this.bucket = bucket;
+    private S3PostObjectRequest(Builder builder) {
+        Objects.requireNonNull(builder.bucket, "bucket is required!");
+        Objects.requireNonNull(builder.expiration, "expiration is required!");
+        this.conditions = Collections.unmodifiableList(builder.conditions);
+        this.expiration = builder.expiration;
+        this.bucket = builder.bucket;
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public List<Condition> getConditions() {
+    public List<Condition> conditions() {
         return conditions;
     }
 
-    public Instant getExpiration() {
+    public Instant expiration() {
         return expiration;
     }
 
-    public String getBucket() {
+    public String bucket() {
         return bucket;
     }
 }

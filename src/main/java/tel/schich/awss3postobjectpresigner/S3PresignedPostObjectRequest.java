@@ -14,11 +14,11 @@ public final class S3PresignedPostObjectRequest {
         this.constantFields = Collections.unmodifiableMap(constantFields);
     }
 
-    public URI getUri() {
+    public URI uri() {
         return uri;
     }
 
-    public Map<String, String> getConstantFields() {
+    public Map<String, String> constantFields() {
         return constantFields;
     }
 
