@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -140,10 +141,10 @@ public final class S3PostObjectPresigner {
         fields.put("Policy", encodedPolicy);
 
         URI endpoint;
-        if (serviceConfiguration.pathStyleAccessEnabled()) {
-            endpoint = this.endpoint.resolve(URLEncoder.encode(request.bucket(), UTF_8));
-        } else {
-            try {
+        try {
+            if (serviceConfiguration.pathStyleAccessEnabled()) {
+                endpoint = this.endpoint.resolve(URLEncoder.encode(request.bucket(), UTF_8.name()));
+            } else {
                 String hostWithBucket = request.bucket() + "." + this.endpoint.getHost();
                 endpoint = new URI(this.endpoint.getScheme(),
                         this.endpoint.getUserInfo(),
@@ -152,9 +153,9 @@ public final class S3PostObjectPresigner {
                         this.endpoint.getPath(),
                         this.endpoint.getQuery(),
                         this.endpoint.getFragment());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
             }
+        } catch (URISyntaxException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
 
         return new S3PresignedPostObjectRequest(endpoint, fields);
