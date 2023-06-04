@@ -8,3 +8,7 @@ pluginManagement {
         id("io.github.gradle-nexus.publish-plugin") version(nexusPublishingVersion)
     }
 }
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.5.0")
+}
