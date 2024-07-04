@@ -1,4 +1,4 @@
-aws-s3-post-object-presigner
+aws-s3-post-object-presigner [![Maven Central](https://img.shields.io/maven-central/v/tel.schich/aws-s3-post-object-presigner.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22tel.schich%22%20AND%20a:%22aws-s3-post-object-presigner%22)
 ============================
 
 This library provides classes to create presigned POST Object requests for AWS S3 (or compatible S3 implementations).
