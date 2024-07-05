@@ -24,8 +24,6 @@ tasks.test {
 
 java {
     toolchain {
-        vendor.set(JvmVendorSpec.ADOPTIUM)
-        implementation.set(JvmImplementation.VENDOR_SPECIFIC)
         languageVersion.set(JavaLanguageVersion.of(8))
     }
     withSourcesJar()
