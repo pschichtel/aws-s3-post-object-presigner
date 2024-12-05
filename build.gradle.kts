@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    api("software.amazon.awssdk:s3:2.29.25")
+    api("software.amazon.awssdk:s3:2.29.28")
     implementation("com.google.code.gson:gson:2.11.0")
 }
 
